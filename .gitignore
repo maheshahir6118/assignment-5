@@ -1,0 +1,21 @@
+# Ignore virtual environments in any subdirectory
+**/venv/
+**/.venv/
+**/env/
+
+# Ignore SQLite databases in any subdirectory
+**/db.sqlite3
+
+# Ignore Python caches recursively
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# IDE configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
