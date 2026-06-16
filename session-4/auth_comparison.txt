@@ -1,0 +1,51 @@
+================================================================================
+INTERVIEW Q&A: TOKEN AUTHENTICATION VS SESSION AUTHENTICATION IN DRF
+================================================================================
+
+Q1: What is the fundamental difference between Session Authentication and Token Authentication?
+--------------------------------------------------------------------------------
+A: The primary difference lies in state management and where session info is stored:
+1. Session Authentication (Stateful): 
+   - The server is responsible for maintaining session state. 
+   - When a user logs in, a session ID is generated and saved in the database or server cache. A cookie containing the session ID (e.g., `sessionid`) is sent to the client.
+   - For every subsequent request, the client browser automatically sends this cookie. The server validates the session ID against its active store.
+2. Token Authentication (Stateless):
+   - The server does not maintain active session states in memory or a fast cache database for validation.
+   - When a user authenticates, the server generates a token (usually stored in a DB table like `authtoken_token`). The client receives this token and is responsible for storing it locally (e.g., in localStorage, sessionStorage, or custom memory).
+   - For subsequent requests, the client must explicitly attach this token to the Authorization header (e.g., `Authorization: Token 9944b091d11f...`).
+
+Q2: Which authentication scheme is preferred for Mobile Apps or Single Page Applications (SPAs)?
+--------------------------------------------------------------------------------
+A: Token Authentication (or JWTs) is highly preferred for mobile apps and multi-platform APIs. 
+- Mobile operating systems (iOS/Android) do not handle cookies natively as seamlessly as browsers do.
+- Mobile clients prefer storing key-value pairs (like tokens) in secure storage (Keychain/SharedPreferences) and appending them directly to request headers.
+- For SPAs (like React or Angular) operating across different domain origins (CORS), headers are easier to pass than cross-domain cookies.
+
+Q3: What are the security vulnerabilities associated with each?
+--------------------------------------------------------------------------------
+A: 
+1. Session Authentication is vulnerable to CSRF (Cross-Site Request Forgery):
+   - Since browsers send cookies automatically with all requests to a target site, a malicious site could trick a user's browser into making requests.
+   - Mitigation: Django enforces CSRF tokens (`X-CSRFToken` headers) to authenticate session state requests.
+2. Token Authentication is vulnerable to XSS (Cross-Site Scripting) and Theft:
+   - If a client stores tokens in `localStorage`, a malicious script injected into the SPA can read the storage and steal the user's token.
+   - Mitigation: Implement Strict Content Security Policies (CSP) and sanitize inputs.
+
+Q4: How do they compare in terms of scalability?
+--------------------------------------------------------------------------------
+A: Token Authentication scales better for large-scale applications:
+- Stateless tokens do not require session database lookups on every API request. If you use JSON Web Tokens (JWTs), the token contains all encoded details, allowing any decentralized server instance to decrypt and verify the token instantly without hitting a database.
+- Session Authentication requires sharing session tables across all server instances (e.g., using Redis or database replication), adding architectural overhead.
+
+Q5: Summary Table
+--------------------------------------------------------------------------------
++--------------------------+----------------------------+---------------------------------+
+| Attribute                | Session Authentication     | Token Authentication            |
++--------------------------+----------------------------+---------------------------------+
+| Stateful/Stateless       | Stateful (Server-managed)  | Stateless (Client-managed)      |
+| Storage Location         | Database/Cache (Server)    | Local/Session Storage (Client)  |
+| Transmission             | Cookies (Automatic)        | Authorization Header (Explicit) |
+| CSRF Vulnerability       | Yes (Requires CSRF tokens) | No                              |
+| Multi-platform friendly  | Low (Browser-centric)      | High (Mobile/Desktop/SPAs)      |
++--------------------------+----------------------------+---------------------------------+
+================================================================================
